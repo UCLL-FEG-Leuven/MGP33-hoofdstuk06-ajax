@@ -32,6 +32,7 @@ app.use("/", express.static(join(__dirname, '..', 'Client')));
 // JSON middleware enablen
 app.use(express.json());
 
+// API VOOR CHAT APP - START
 let messages = [
     new ChatMessage('system',' Server is up')
 ];
@@ -51,7 +52,19 @@ app.post('/api/chat', (req, res) => {
     messages.push(chatMessage);
     res.status(204).end();
 });
-  
+// API VOOR CHAT APP - END
+
+// API VOOR TIME SERVER - START
+app.get("/time", (req, res) => {
+    let toReturn = {
+        time: new Date()
+    };
+    res.json(toReturn);
+});
+// API VOOR TIME SERVER - END
+
+
+
 app.listen(port, () => {
     console.log(`Chat server listening on port ${port}`);
 });
