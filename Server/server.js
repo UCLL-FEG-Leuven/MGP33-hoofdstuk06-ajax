@@ -6,6 +6,8 @@ import connectLiveReload from "connect-livereload";
 
 import { ChatMessage } from "./chat-message.js";
 
+import { Vak } from "./vak.js";
+
 import __dirname from "./__dirname.js";
 
 // Met livereload zal de browser automatisch refreshen van zodra er een wijziging is aan de backend of frontend.
@@ -32,6 +34,7 @@ app.use("/", express.static(join(__dirname, '..', 'Client')));
 // JSON middleware enablen
 app.use(express.json());
 
+// API VOOR CHAT APP - START
 let messages = [
     new ChatMessage('system',' Server is up')
 ];
@@ -51,7 +54,47 @@ app.post('/api/chat', (req, res) => {
     messages.push(chatMessage);
     res.status(204).end();
 });
-  
+// API VOOR CHAT APP - END
+
+// API VOOR STUDIEPUNTENTELLER ONLINE - START
+let studentenEnHunTellingen = new Map();
+
+app.get('/api/studiepuntenteller/:studentnummer', (req, res) => {
+    let studentnummer = req.params.studentnummer;
+    if (studentenEnHunTellingen.has(studentnummer)) {
+        // Is de student al gekend bij de backend?
+        let vakken = studentenEnHunTellingen.get(studentnummer);
+        res.json(vakken);
+    } else {
+        // Is de student nog niet gekend bij de backend?
+        let vakken = [];
+        vakken.push(new Vak(0, "IT essentials", 3, 0));
+        vakken.push(new Vak(1, "IT landscape", 3, 0));
+        vakken.push(new Vak(2, "Databases basis", 4, 0));
+        vakken.push(new Vak(3, "Databases gevorderd", 4, 0));
+        vakken.push(new Vak(4, "Programmeren basis", 9, 0));
+        vakken.push(new Vak(5, "Programmeren gevorderd", 6, 0));
+        vakken.push(new Vak(6, "Frontend basis", 7, 0));
+        vakken.push(new Vak(7, "Frontend gevorderd", 5, 0));
+        vakken.push(new Vak(8, "Backend 1", 4, 0));
+        vakken.push(new Vak(9, "Verkenning van de werkplek", 4, 0));
+        vakken.push(new Vak(10, "Communicatievaardigheden", 3, 0));
+        vakken.push(new Vak(11, "Participatie op de werkplek 1", 6, 0));
+        vakken.push(new Vak(12, "Teamvaardigheden", 3, 0));
+        studentenEnHunTellingen.set(studentnummer, vakken);        
+        res.json(vakken);
+    }
+});
+
+app.post('/api/studiepuntenteller/:studentnummer', (req, res) => {
+    let studentnummer = req.params.studentnummer;
+    // Opgelet: in res.body zit een array van object literals. Het zijn dus geen objecten van de Vak class! 
+    // Dat kan hier niet zoveel kwaad omdat de backend na 'constructie' in de app.get() geen nood meer heeft aan de Vak class.
+    studentenEnHunTellingen.set(studentnummer, req.body);  
+});
+// API VOOR STUDIEPUNTENTELLER ONLINE - END
+
+
 app.listen(port, () => {
     console.log(`Chat server listening on port ${port}`);
 });

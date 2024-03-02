@@ -5,55 +5,41 @@ import { Vak } from "./vak.js";
 const localStorageKey = "vakkenLijst";
 
 export class Vakkenlijst {
+    #studentnummer;
     #vakken;
 
-    constructor() {
+    constructor(studentnummer) {
+        this.#studentnummer = studentnummer;
         this.#vakken = [];
     }
 
-    save() {
-        // Bewaren van de array van vakken.
-        // Bemerk dat Vak objecten een toJSON() methode hebben: die zal door onderstaande JSON.stringify worden aangeroepen
-        // om 'meer controle' te hebben over de serialisatie naar de JSON string.
-        localStorage.setItem(
-            localStorageKey,
-            JSON.stringify(this.#vakken)
-        );
+    async save() {
+        let response = await fetch(`/api/studiepuntenteller/${this.#studentnummer}`, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.#vakken)
+          });
+          if (!response.ok) {
+            throw "Er is iets misgelopen met het bewaren.";
+          }
     }
 
-    load() {
-        // Een eventuele reeds geladen lijst weer leegmaken (vb. als de gebruiker een tweede maal op de 'Laden' knop drukt).
+    async load() {
+        let response = await fetch(`/api/studiepuntenteller/${this.#studentnummer}`);
+        if (!response.ok) {
+            throw "Er is iets misgelopen met het ophalen.";
+        }
+        let vakkenAsArrayOfObjectLiterals = await response.json();
         this.#vakken = [];
-
-        // Ophalen van de lijst van vakken uit de local storage.
-        // Opgelet: dit kan null zijn indien de pagina een eerste keer getoond wordt en er nog geen data in de localStorage zit.
-        let vakkenLijstFromStorage = localStorage.getItem(localStorageKey);
-        if (vakkenLijstFromStorage) {
-            // Indien niet null: de JSON string terug omzetten naar een array van vakken.
-            // Opgelet: de array bestaat uit gewone JavaScript objecten (object literals) die niet afstammen van de Vak class.
-            // Vandaar loopen we over alle vakken uit de JSON en maken we terug volwaardige Vak-objecten van met de Vak.restoreFromJsonObject() methode.
-            let vakkenFromJson = JSON.parse(vakkenLijstFromStorage);
-            vakkenFromJson.forEach(vakFromJson => {
-                let vak = Vak.restoreFromJsonObject(vakFromJson);
-                this.#vakken.push(vak);
-            });
-        }
-        else {
-            // Indien wel null: al direct vakken toevoegen...
-            this.#vakken.push(new Vak(0, "IT essentials", 3, 0));
-            this.#vakken.push(new Vak(1, "IT landscape", 3, 0));
-            this.#vakken.push(new Vak(2, "Databases basis", 4, 0));
-            this.#vakken.push(new Vak(3, "Databases gevorderd", 4, 0));
-            this.#vakken.push(new Vak(4, "Programmeren basis", 9, 0));
-            this.#vakken.push(new Vak(5, "Programmeren gevorderd", 6, 0));
-            this.#vakken.push(new Vak(6, "Frontend basis", 7, 0));
-            this.#vakken.push(new Vak(7, "Frontend gevorderd", 5, 0));
-            this.#vakken.push(new Vak(8, "Backend 1", 4, 0));
-            this.#vakken.push(new Vak(9, "Verkenning van de werkplek", 4, 0));
-            this.#vakken.push(new Vak(10, "Communicatievaardigheden", 3, 0));
-            this.#vakken.push(new Vak(11, "Participatie op de werkplek 1", 6, 0));
-            this.#vakken.push(new Vak(12, "Teamvaardigheden", 3, 0));
-        }
+        vakkenAsArrayOfObjectLiterals.forEach(vakAsObjectLiteral => {
+            this.#vakken.push(new Vak(
+                vakAsObjectLiteral.id,
+                vakAsObjectLiteral.naam,
+                vakAsObjectLiteral.studiepunten,
+                vakAsObjectLiteral.aantalUren));
+        });
 
         // Eens dat de vakken geladen zijn: ook direct tonen.
         this.#renderVakken();
@@ -88,12 +74,22 @@ export class Vakkenlijst {
 
         element.innerHTML = table;
 
-        document.getElementById("save").addEventListener("click", (e) => {
-            this.save();
+        document.getElementById("save").addEventListener("click", async (evt) => {
+            try {
+                this.#resetErrors();
+                await this.save();
+            } catch  (e) {
+                this.#showError(e);
+            }            
         })
 
-        document.getElementById("load").addEventListener("click", (e) => {
-            this.load();
+        document.getElementById("load").addEventListener("click", async (evt) => {
+            try {
+                this.#resetErrors();
+                await this.load();
+            } catch (e) {
+                this.#showError(e)
+            }            
         });
     }
 
@@ -104,5 +100,15 @@ export class Vakkenlijst {
             // Elke rij mag zichzelf dan 'renderen' in het HTML document.
             this.#vakken[i].render(tbody);
         }
+    }
+
+    #resetErrors() {
+        document.getElementById("errors").style.visibility = "hidden";
+        document.getElementById("errors").innerText = "";
+    }
+
+    #showError(error) {
+        document.getElementById("errors").style.visibility = "unset";
+        document.getElementById("errors").innerText = error;
     }
 }

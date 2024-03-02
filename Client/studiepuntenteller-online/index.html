@@ -10,8 +10,14 @@
 </head>
 <body class="container">
     <h1>UCLL studiebelastingteller</h1>
-    <section>
+    <form>
+        <label for="studentnummer">Geef je studentnummer in:</label>
+        <input type="text" id="studentnummer">
+        <input type="submit" value="Toon mijn tellers">
+    </form>
+    <section style="visibility: hidden;">
         <!-- De Vakkenlijst 'rendert' zichzelf in deze section. -->
     </section>
+    <p id="errors" style="visibility: hidden;"></p>
 </body>
 </html>
