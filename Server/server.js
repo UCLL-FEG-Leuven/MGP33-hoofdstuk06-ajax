@@ -55,7 +55,7 @@ app.post('/api/chat', (req, res) => {
 // API VOOR CHAT APP - END
 
 // API VOOR TIME SERVER - START
-app.get("/time", (req, res) => {
+app.get("/api/time", (req, res) => {
     let toReturn = {
         time: new Date()
     };
