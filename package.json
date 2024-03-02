@@ -1,0 +1,17 @@
+{
+    "name": "mgp33-hoofdstuk06-ajax",
+    "version": "0.0.1",
+    "description": "Demo code en oplossingen van de oefeningen van hoofdstuk 06 AJAX.",
+    "main": "index.js",
+    "scripts": {
+      "start": "cd Server & npm run start"
+    },
+    "keywords": [
+      "UCLL",
+      "FEG",
+      "hoofdstuk06",
+      "AJAX"
+    ],
+    "author": "David Urting",
+    "license": "UNLICENSED"
+  }
